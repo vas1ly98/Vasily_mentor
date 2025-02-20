@@ -2,6 +2,8 @@ import pytest
 import requests
 from faker import Faker
 from constants import HEADERS, BASE_URL
+from module_4.Reques_osnovi.home_1 import response_get, booking_id
+from module_4.Restful_Booker_API.ONE_ONE import response
 
 faker = Faker()
 
@@ -35,3 +37,4 @@ def booking_data():
         },
         "additionalneeds": "Cigars"
     }
+
