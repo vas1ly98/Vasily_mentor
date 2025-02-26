@@ -9,6 +9,7 @@ class DataGenerator:
         random_string = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
         return f"kek{random_string}@gmail.com"
 
+
     @staticmethod
     def generate_random_name():
         first_names = ["John", "Jane", "Alex", "Emily", "Chris"]
@@ -16,6 +17,7 @@ class DataGenerator:
         random_first_name = random.choice(first_names)
         random_last_name = random.choice(last_names)
         return f"{random_first_name} {random_last_name}"
+
 
     @staticmethod
     def generate_random_password():
@@ -31,7 +33,7 @@ class DataGenerator:
         digits = random.choice(string.digits)  # Одна цифра
 
         # Дополняем пароль случайными символами из допустимого набора
-        special_chars = "?@#$%^&*_-+()[]{}><\\/|\"'.,:"
+        special_chars = "?@#$%^&*_-+()[]{}><\\/|\"'.,:;"
         all_chars = string.ascii_letters + string.digits + special_chars
         remaining_length = random.randint(6, 18)  # Остальная длина пароля
         remaining_chars = ''.join(random.choices(all_chars, k=remaining_length))

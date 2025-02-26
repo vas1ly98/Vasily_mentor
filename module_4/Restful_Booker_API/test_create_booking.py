@@ -1,8 +1,6 @@
 import pytest
-from constants import BASE_URL
+from module_4.Restful_Booker_API.constants_booking import BASE_URL
 from faker import Faker
-
-from module_4.Reques_osnovi.requestt import booking_id
 
 faker = Faker()
 

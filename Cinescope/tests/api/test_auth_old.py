@@ -30,7 +30,7 @@ class TestAuthAPI:
             method="POST",
             endpoint=LOGIN_ENDPOINT,
             data=login_data,
-            expected_status=201
+            expected_status=200
         )
         response_data = response.json()
         assert "accessToken" in response_data, "Токен доступа отсутствует в ответе"

@@ -1,19 +1,17 @@
 from webbrowser import register
-
 import pytest
 import requests
 from faker import Faker
 from faker.generator import random
 from pycparser.ply.yacc import token
-
 from constants import HEADERS, BASE_URL, REGISTER_ENDPOINT, LOGIN_ENDPOINT
-from module_4.Reques_osnovi.home_1 import response_get, booking_id
-from module_4.Restful_Booker_API.ONE_ONE import response
 from Cinescope.utils.data_generator import DataGenerator
 from Cinescope.custom_requester.custom_requester import CustomRequester
+from Cinescope.api.api_manager import ApiManager
 faker = Faker()
 
-@pytest.fixture(scope="session")
+
+@pytest.fixture(scope="function")
 def test_user():
     """
     Генерация случайного пользователя для тестов.
@@ -30,7 +28,7 @@ def test_user():
         "roles": ["USER"]
     }
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def registered_user(requester, test_user):
     """
     Фикстура для регистрации и получения данных зарегистрированного пользователя.
@@ -46,10 +44,28 @@ def registered_user(requester, test_user):
     registered_user["id"] = response_data["id"]
     return registered_user
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def requester():
     """
     Фикстура для создания экземпляра CustomRequester.
     """
     session = requests.Session()
     return CustomRequester(session=session, base_url=BASE_URL)
+
+@pytest.fixture(scope="function")
+def api_manager(session):
+    """
+    Фикстура для создания экземпляра ApiManager.
+    """
+    return ApiManager(session)
+
+
+
+@pytest.fixture(scope="function")
+def session():
+    """
+    Фикстура для создания HTTP-сессии.
+    """
+    http_session = requests.Session()
+    yield http_session
+    http_session.close()
