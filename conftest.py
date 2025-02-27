@@ -69,3 +69,12 @@ def session():
     http_session = requests.Session()
     yield http_session
     http_session.close()
+
+
+@pytest.fixture
+def api_manager_with_auth(authorized_user, api_manager):
+    """
+    Возвращает API Manager с настроенным токеном авторизации.
+    """
+    api_manager.set_headers({"Authorization": f"Bearer {authorized_user['token']}"})
+    return api_manager

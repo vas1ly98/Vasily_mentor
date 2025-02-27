@@ -3,17 +3,21 @@ import requests
 import logging
 import os
 
+from socks import method
+
+from Cinescope_API_Movies.constants import base_url
+from http import HTTPStatus
+
 
 
 class CustomRequester:
-
-
+    SC_OK = (HTTPStatus.OK, HTTPStatus.CREATED)
     def __init__(self, base_url, session, headers=None):
         self.base_url = base_url
         self.headers = headers or {}
         self.session = session
 
-    def send_request(self, method, endpoint, data=None, params=None, headers = None, expected_status=200):
+    def send_request(self, method, endpoint, data=None, params=None, headers = None, expected_status=SC_OK):
 
         url = f"{self.base_url}{endpoint}"
 
@@ -28,11 +32,16 @@ class CustomRequester:
 
         self.log_request_and_response(response)
 
-        if response.status_code != expected_status:
-            raise ValueError(
-                f"Unexpected status code: {response.status_code}. "
-                f"Expected: {expected_status}. Response: {response.text}"
-            )
+        if isinstance(expected_status, (list, tuple)):
+            if response.status_code not in expected_status:
+                raise ValueError(
+                    f"Unexpected status code: {response.status_code}. Expected one of: {expected_status}"
+                )
+            else:
+                if response.status_code != expected_status:
+                    raise ValueError(
+                        f"Unexpected status code: {response.status_code}. Expected: {expected_status}"
+                    )
 
         return response
 
@@ -46,4 +55,23 @@ class CustomRequester:
         print("\n======================================== RESPONSE =======================================")
         print(f"Status Code: {response.status_code}")
         print(f"Response Data: {response.text}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
