@@ -39,10 +39,9 @@ class TestAuthAPI:
         assert response_data["user"]["email"] == registered_user["email"], "Email не совпадает"
 
 
-    # def test_delete_user(self, api_manager: ApiManager, registered_user):
-    #     time.sleep(2)
-    #     response = api_manager.auth_api.delete_user(
-    #         registered_user["id"], expected_status=400)  # Используем auth_api, если delete_user здесь
-    #     assert response.status_code == 400, f"Ожидался статус 204, получен {response.status_code}"
-
+    def test_delete_user(self, api_manager: ApiManager, registered_user):
+        time.sleep(2)
+        response = api_manager.auth_api.delete_user(
+        registered_user["id"], expected_status=404)  # Используем auth_api, если delete_user здесь
+        assert response.status_code == 404, f"Ожидался статус 204, получен {response.status_code}"
 

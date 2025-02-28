@@ -1,29 +1,33 @@
 import pytest
 import requests
 from faker import Faker
-from Cinescope_API_Movies.constants import MOVIES_GENRES_ENDPOINT, MOVIES_ENDPOINT, base_url
+from Cinescope_API_Movies.constants import MOVIES_GENRES_ENDPOINT, MOVIES_ENDPOINT, base_url, BASE_URL
 import pytest
 from Cinescope_API_Movies.utils.data_generator import DataGenerator
 from Cinescope_API_Movies.custom_requester.custom_requester import CustomRequester
 from constants import REGISTER_ENDPOINT, LOGIN_ENDPOINT
 from random import randint
-faker = Faker()
 from Cinescope_API_Movies.api.api_manager import ApiManager
+import time
+faker = Faker()
 
 
 #ФИКСТУРЫ ДЛЯ ФИЛЬМОВ
 @pytest.fixture(scope="function")
 def movie_data():
+    random_movie = DataGenerator.generate_random_movie()
+    random_description = DataGenerator.generate_random_description()
     return {
-        "name": f"movie{randint(1, 1000)}",#по идее тут тоже надо генератор сделать будет да, чтобы рандомные имена были то если повторно то 409 ошибка
+        "name": random_movie,
         "imageUrl": "https://example.com/movie.jpg",
-        "price": 500,
-        "description": "Описание тестового фильма",
+        "price": randint(500, 1500),
+        "description": random_description,
         "location": "MSK",
         "published": True,
-        "genreId": 1,
+        "genreId": randint(1, 9)
 
     }
+
 @pytest.fixture(scope='function')
 def temp_movie():
 #тут создаем временный фильм, если значения не переданы будут использоваться из функции
@@ -44,11 +48,12 @@ def temp_movie():
 
 @pytest.fixture(scope="function")
 def create_movie(api_manager, super_admin_token, movie_data):
+    """Создает фильм и возвращает его данные, а после теста удаляет"""
     response = api_manager.movies_api.create_movie(movie_data, super_admin_token)
-    movie_id = response.json()["id"]
-    yield movie_id  # Возвращаем ID фильма
-    # Удаляем фильм после теста
-    api_manager.movies_api.delete_movie(movie_id, super_admin_token)
+    movie = response.json()
+    yield movie
+    api_manager.movies_api.delete_movie(movie["id"], super_admin_token)
+    time.sleep(2)
 
 
 
@@ -70,7 +75,7 @@ def requester():
     Фикстура для создания экземпляра CustomRequester.
     """
     session = requests.Session()
-    return CustomRequester(session=session, base_url=base_url)
+    return CustomRequester(session=session, base_url=BASE_URL)#
 
 @pytest.fixture(scope="function")
 def api_manager(session):

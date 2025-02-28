@@ -10,9 +10,7 @@ class Hero:
 class Warrior(Hero):
 
     def attack(self):
-        return "Нанёс 20 урона мечом"`stance` = `защитная`
-                                                        `health` = `140`
-                                                        `name`  = `Vasyan`
+        return "Нанёс 20 урона мечом"
 
 
 class Mage(Hero):

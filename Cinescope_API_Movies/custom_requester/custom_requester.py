@@ -2,10 +2,6 @@ import json
 import requests
 import logging
 import os
-
-from socks import method
-
-from Cinescope_API_Movies.constants import base_url
 from http import HTTPStatus
 
 
@@ -37,11 +33,11 @@ class CustomRequester:
                 raise ValueError(
                     f"Unexpected status code: {response.status_code}. Expected one of: {expected_status}"
                 )
-            else:
-                if response.status_code != expected_status:
-                    raise ValueError(
-                        f"Unexpected status code: {response.status_code}. Expected: {expected_status}"
-                    )
+        else:
+            if response.status_code != expected_status:
+                raise ValueError(
+                    f"Unexpected status code: {response.status_code}. Expected: {expected_status}"
+                )
 
         return response
 

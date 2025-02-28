@@ -1,5 +1,5 @@
 from Cinescope_API_Movies.custom_requester.custom_requester import CustomRequester
-from constants import HEADERS, BASE_URL, REGISTER_ENDPOINT, LOGIN_ENDPOINT
+from Cinescope_API_Movies.constants import HEADERS, base_url, REGISTER_ENDPOINT, LOGIN_ENDPOINT, BASE_URL
 
 
 class AuthAPI(CustomRequester):
@@ -46,3 +46,4 @@ class AuthAPI(CustomRequester):
             endpoint=f"/users/{user_id}",
             expected_status=expected_status
         )
+

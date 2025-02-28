@@ -5,6 +5,21 @@ import string
 class DataGenerator:
 
     @staticmethod
+    def generate_random_movie():
+        first_word = ['SUPER', 'WONDERFUL', 'NICE', 'GOOD', 'BEST', 'BAD']
+        two_word =['NIGHTMARE', 'BOY', 'GIRL', 'MAN', 'WARRIOR']
+        random_first_word = random.choice(first_word)
+        random_two_word = random.choice(two_word)
+        return f'{random_first_word}_{random_two_word}'
+
+    @staticmethod
+    def generate_random_description():
+        movie_description = ['Фильм для мальчиков', 'Фильм для девочек', 'Фильм для всех']
+
+        random_description = random.choice(movie_description)
+        return f'{random_description}'
+
+    @staticmethod
     def generate_random_email():
         random_string = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
         return f"kek{random_string}@gmail.com"
