@@ -8,17 +8,18 @@ from http import HTTPStatus
 
 class CustomRequester:
     SC_OK = (HTTPStatus.OK, HTTPStatus.CREATED)
+
     def __init__(self, base_url, session, headers=None):
         self.base_url = base_url
         self.headers = headers or {}
         self.session = session
 
-    def send_request(self, method, endpoint, data=None, params=None, headers = None, expected_status=SC_OK):
+    def send_request(self, method, endpoint, data=None, params=None, headers=None, expected_status=SC_OK):
 
         url = f"{self.base_url}{endpoint}"
 
         request_headers = {**self.headers, **(headers or {})}
-        response = requests.request(
+        response = self.session.request(
             method=method,
             url=url,
             headers=request_headers,

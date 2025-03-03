@@ -1,16 +1,26 @@
 import random
 import string
-
+from faker import Faker
+faker = Faker()
 
 class DataGenerator:
 
+    # @staticmethod
+    # def generate_funny_movie_title():
+    #     """Генерирует смешное название фильма с припиской _AQA_"""
+    #     adjectives = ["Смешной", "Безумный", "Эпический", "Забавный", "Неожиданный"]
+    #     nouns = ["Тестер", "Баг", "Джун", "Сеньор", "Плейсхолдер"]
+    #     return f"{random.choice(adjectives)} {random.choice(nouns)}_AQA_"
+    #
+    # @staticmethod
+    # def generate_random_email():
+    #     """Генерирует случайный email"""
+    #     random_string = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+    #     return f"kekk{random_string}@gmail.com"
+
     @staticmethod
     def generate_random_movie():
-        first_word = ['SUPER', 'WONDERFUL', 'NICE', 'GOOD', 'BEST', 'BAD']
-        two_word =['NIGHTMARE', 'BOY', 'GIRL', 'MAN', 'WARRIOR']
-        random_first_word = random.choice(first_word)
-        random_two_word = random.choice(two_word)
-        return f'{random_first_word}_{random_two_word}'
+        return f'{faker.name()}_{faker.last_name()}'
 
     @staticmethod
     def generate_random_description():

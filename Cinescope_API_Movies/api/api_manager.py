@@ -1,7 +1,5 @@
-from Cinescope_API_Movies.api.movies_api import MoviesAPI
-from Cinescope_API_Movies.constants import base_url
-from Cinescope_API_Movies.custom_requester.custom_requester import CustomRequester
-from Cinescope_API_Movies.api.auth_api import AuthAPI
+from Cinescope_API_Movies.all_old_file.movies_api_old import MoviesAPI
+from Cinescope_API_Movies.all_old_file.auth_api_old import AuthAPI
 
 
 
@@ -13,8 +11,7 @@ class ApiManager:
     def __init__(self, session):
 
         self.session = session
-        self.requester = CustomRequester(session=session, base_url=base_url)
-        self.movies_api = MoviesAPI(self.requester, session)
+        self.movies_api = MoviesAPI(session)
         self.auth_api = AuthAPI(session)
 
 

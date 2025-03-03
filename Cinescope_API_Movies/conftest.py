@@ -1,15 +1,19 @@
 import pytest
 import requests
+import uuid
 from faker import Faker
 from Cinescope_API_Movies.constants import MOVIES_GENRES_ENDPOINT, MOVIES_ENDPOINT, base_url, BASE_URL
 import pytest
 from Cinescope_API_Movies.utils.data_generator import DataGenerator
 from Cinescope_API_Movies.custom_requester.custom_requester import CustomRequester
-from constants import REGISTER_ENDPOINT, LOGIN_ENDPOINT
 from random import randint
 from Cinescope_API_Movies.api.api_manager import ApiManager
+from Cinescope_API_Movies.entities.user import User
+from Cinescope_API_Movies.enums.roles import Roles
 import time
 faker = Faker()
+from Cinescope_API_Movies.utils.user_data import UserData
+from Cinescope_API_Movies.models.base_models import TestUser
 
 
 #ФИКСТУРЫ ДЛЯ ФИЛЬМОВ
@@ -28,54 +32,32 @@ def movie_data():
 
     }
 
-@pytest.fixture(scope='function')
-def temp_movie():
-#тут создаем временный фильм, если значения не переданы будут использоваться из функции
-    def create_movie_for_test(name='SUPERSONIC', imageUrl="https://example.com/movie.jpg", price=1000,
-                              description="Описание тестового фильма", location="MSK", published=True, genreId=1):
-        return {
-            "name": name,
-            "imageUrl": imageUrl,
-            "price": price,
-            "description": description,
-            "location": location,
-            "published": published,
-            "genreId": genreId,
-        }
-
-    return create_movie_for_test
-
-
 @pytest.fixture(scope="function")
 def create_movie(api_manager, super_admin_token, movie_data):
     """Создает фильм и возвращает его данные, а после теста удаляет"""
     response = api_manager.movies_api.create_movie(movie_data, super_admin_token)
     movie = response.json()
     yield movie
-    api_manager.movies_api.delete_movie(movie["id"], super_admin_token)
+    api_manager.movies_api.delete_movie(movie["id"], super_admin_token, expected_status=(201, 200, 404))
     time.sleep(2)
-
-
 
 
 #ФИКСТУРЫ ДЛЯ СЕССИЙ
 @pytest.fixture(scope="function")
 def super_admin_token(api_manager):
-    login_data = {
-        "email": "test-admin@mail.com",  # Хардкодим данные супер-админа
+    """
+    Фикстура для создания супер-администратора.
+    """
+    admin_data = {
+        "email": "test-admin@mail.com",
         "password": "KcLMmxkJMjBD1",
+        "passwordRepeat": "KcLMmxkJMjBD1"
     }
-    response = api_manager.auth_api.login_user(login_data)
-    return response.json()["accessToken"]
+    login_response = api_manager.auth_api.login_user(admin_data)
+    assert login_response.status_code in [200, 201], "Не удалось авторизоваться"
+    access_token = login_response.json()["accessToken"]
+    yield access_token  # Возвращаем токен для авторизации в тестах
 
-
-@pytest.fixture(scope="function")
-def requester():
-    """
-    Фикстура для создания экземпляра CustomRequester.
-    """
-    session = requests.Session()
-    return CustomRequester(session=session, base_url=BASE_URL)#
 
 @pytest.fixture(scope="function")
 def api_manager(session):
@@ -93,10 +75,10 @@ def session():
     yield http_session
     http_session.close()
 
-
 # ФИКСТУРЫ ДЛЯ АУТЕНТЕФИКАЦИИ ПОЛЬЗОВАТЕЛЯ
-@pytest.fixture(scope="function")
-def test_user():
+
+@pytest.fixture(scope="session")
+def test_user() -> TestUser: # добавили формат возвращаеммого значения TestUser
     """
     Генерация случайного пользователя для тестов.
     """
@@ -104,38 +86,104 @@ def test_user():
     random_name = DataGenerator.generate_random_name()
     random_password = DataGenerator.generate_random_password()
 
-    return {
-        "email": random_email,
-        "fullName": random_name,
-        "password": random_password,
-        "passwordRepeat": random_password,
-        "roles": ["USER"]
-    }
+    return TestUser( # возвращем обьект с опередленный набором полей и правил. нет возможности добавить чтото еще
+        email=random_email,
+        fullName=random_name,
+        password=random_password,
+        passwordRepeat=random_password, # field_validator автоматически проверит, что password и passwordRepeat совпадают
+    ) # поле roles заполнится автоматически и бедт = [Role.USER]
 
 @pytest.fixture(scope="function")
-def registered_user(requester, test_user):
+def registered_user(api_manager, test_user):
     """
-    Фикстура для регистрации и получения данных зарегистрированного пользователя.
+    Фикстура для регистрации пользователя через auth_api.
     """
-    response = requester.send_request(
-        method="POST",
-        endpoint=REGISTER_ENDPOINT,
-        data=test_user,
-        expected_status=201
-    )
+    response = api_manager.auth_api.register_user(test_user)
     response_data = response.json()
-    registered_user = test_user.copy()
-    registered_user["id"] = response_data["id"]
-    return registered_user
+    test_user["id"] = response_data["id"]
+    return test_user
 
 
 
 @pytest.fixture
-def api_manager_with_auth(authorized_user, api_manager):
-    """
-    Возвращает API Manager с настроенным токеном авторизации.
-    """
-    api_manager.set_headers({"Authorization": f"Bearer {authorized_user['token']}"})
-    return api_manager
+def user_create(api_manager, super_admin_token):
+    """Фикстура для создания пользователей с разными ролями."""
+    created_users = []
+
+    def _user_create(role):
+        # ✅ Генерируем данные пользователя
+        user_data = UserData.generate_user_data(role)
+        email, password = user_data["email"], user_data["password"]
+
+        # ✅ Регистрируем пользователя
+        response = api_manager.auth_api.register_user(user_data)
+
+        if response.status_code == 201:
+            user_id = response.json().get("id") or response.json().get("user", {}).get("id")
+        elif response.status_code == 409:  # Пользователь уже существует
+            login_response = api_manager.auth_api.login_user({"email": email, "password": password})
+            assert login_response.status_code in [200, 201], "❌ Ошибка: не удалось авторизоваться"
+            user_id = login_response.json()["user"]["id"]
+        else:
+            raise ValueError(f"❌ Ошибка: неожиданный статус {response.status_code} при регистрации")
+
+        # ✅ Логинимся один раз, чтобы получить токен
+        access_token = login_response.json()["accessToken"] if response.status_code == 409 else \
+                       api_manager.auth_api.login_user({"email": email, "password": password}).json()["accessToken"]
+
+        # ✅ Если роль не USER, обновляем через супер-админа
+        if role != "USER":
+            api_manager.auth_api.change_user_role(user_id, [role], super_admin_token)
+
+        created_users.append(user_id)  # ✅ Добавляем пользователя в список
+
+        return {"id": user_id, "email": email,"password": user_data["password"], "token": access_token}
+
+    yield _user_create
+
+    # ✅ Удаляем пользователей после тестов
+    for user_id in created_users:
+        try:
+            api_manager.auth_api.delete_user(user_id, super_admin_token)
+        except Exception as e:
+            print(f"⚠️ Ошибка при удалении пользователя {user_id}: {e}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# @pytest.fixture
+# def movie_data():
+#     """
+#     Генерация данных для создания фильма.
+#     """
+#     return {
+#         "name": "Test Movie",
+#         "price": 500,
+#         "description": "Описание тестового фильма",
+#         "location": "MSK",  # Исправлено значение location
+#         "published": True,
+#         "genreId": 1  # Исправлено значение genreId
+#     }
+
+
+# @pytest.fixture
+# def api_manager_with_auth(authorized_user, api_manager):
+#     """
+#     Возвращает API Manager с настроенным токеном авторизации.
+#     """
+#     api_manager.set_headers({"Authorization": f"Bearer {authorized_user['token']}"})
+#     return api_manager
 
 

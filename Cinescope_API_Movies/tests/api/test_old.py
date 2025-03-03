@@ -33,7 +33,3 @@ class TestFilmApi:
         assert get_response.status_code == 404, "Ошибка: фильм всё ещё существует после удаления"
 
 
-
-
-
-

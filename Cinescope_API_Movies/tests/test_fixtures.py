@@ -1,7 +1,6 @@
-import pytest
 from Cinescope_API_Movies.conftest import api_manager, create_movie, super_admin_token
-from Cinescope_API_Movies.utils import data_generator
-from Cinescope_API_Movies import conftest
+
+
 class TestFixtures:
     def test_auth_token(self, super_admin_token):
 
@@ -9,7 +8,6 @@ class TestFixtures:
         assert super_admin_token.startswith("eyJ"), "Токен должен быть валидным JWT"
 
     def test_movie_data(self, movie_data):
-        response = movie_data
         assert "name" in movie_data, "Должно быть указано имя фильма"
         assert "price" in movie_data, "Должна быть указана цена"
         assert movie_data["price"] > 0, "Цена фильма должна быть больше 0"

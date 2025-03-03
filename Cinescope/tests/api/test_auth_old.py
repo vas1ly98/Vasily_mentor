@@ -1,37 +1,47 @@
-import pytest
-from constants import REGISTER_ENDPOINT, LOGIN_ENDPOINT
+from Cinescope_API_Movies.custom_requester.custom_requester import CustomRequester
+from Cinescope_API_Movies.constants import HEADERS, base_url, REGISTER_ENDPOINT, LOGIN_ENDPOINT, BASE_URL
 
-class TestAuthAPI:
-    def test_register_user(self, requester, test_user):
+
+class AuthAPI(CustomRequester):
+
+    def __init__(self, session):
+        super().__init__(session=session, base_url=BASE_URL)
+
+    def register_user(self, user_data, expected_status=201):
         """
-        Тест на регистрацию пользователя.
+        Регистрация нового пользователя.
+        :param user_data: Данные пользователя.
+        :param expected_status: Ожидаемый статус-код.
         """
-        response = requester.send_request(
+        return self.send_request(
             method="POST",
             endpoint=REGISTER_ENDPOINT,
-            data=test_user,
-            expected_status=201
+            data=user_data,
+            expected_status=expected_status
         )
-        response_data = response.json()
-        assert response_data["email"] == test_user["email"], "Email не совпадает"
-        assert "id" in response_data, "ID пользователя отсутствует в ответе"
-        assert "roles" in response_data, "Роли пользователя отсутствуют в ответе"
-        assert "USER" in response_data["roles"], "Роль USER должна быть у пользователя"
 
-    def test_register_and_login_user(self, requester, registered_user):
+    def login_user(self, login_data, expected_status=201):
         """
-        Тест на регистрацию и авторизацию пользователя.
+        Авторизация пользователя.
+        :param login_data: Данные для логина.
+        :param expected_status: Ожидаемый статус-код.
         """
-        login_data = {
-            "email": registered_user["email"],
-            "password": registered_user["password"]
-        }
-        response = requester.send_request(
+        return self.send_request(
             method="POST",
             endpoint=LOGIN_ENDPOINT,
             data=login_data,
-            expected_status=200
+            expected_status=expected_status
         )
-        response_data = response.json()
-        assert "accessToken" in response_data, "Токен доступа отсутствует в ответе"
-        assert response_data["user"]["email"] == registered_user["email"], "Email не совпадает"
+
+    def delete_user(self, user_id, expected_status=204):
+        """
+        Удаление пользователя.
+        :param user_id: ID пользователя.
+        :param expected_status: Ожидаемый статус-код.
+        """
+        return self.send_request(
+            method="DELETE",
+            endpoint=f"/users/{user_id}",
+            expected_status=expected_status
+        )
+
