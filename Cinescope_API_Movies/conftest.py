@@ -41,7 +41,23 @@ def create_movie(api_manager, super_admin_token, movie_data):
     api_manager.movies_api.delete_movie(movie["id"], super_admin_token, expected_status=(201, 200, 404))
     time.sleep(2)
 
-
+# @pytest.fixture
+# def super_admin(api_manager):
+#     """
+#     Фикстура для создания супер-администратора.
+#     """
+#     admin_data = {
+#         "email": "test-admin@mail.com",
+#         "password": "KcLMmxkJMjBD1",
+#         "passwordRepeat": "KcLMmxkJMjBD1"
+#     }
+#     login_response = api_manager.auth_api.login_user(admin_data)
+#
+#     assert login_response.status_code in [200, 201], "Не удалось авторизоваться"
+#
+#     access_token = login_response.json()["accessToken"]
+#
+#     yield access_token  # Возвращаем токен для авторизации в тестах по идее она же не нужна
 #ФИКСТУРЫ ДЛЯ СЕССИЙ
 @pytest.fixture(scope="function")
 def super_admin_token(api_manager):
@@ -53,7 +69,7 @@ def super_admin_token(api_manager):
         "password": "KcLMmxkJMjBD1",
         "passwordRepeat": "KcLMmxkJMjBD1"
     }
-    login_response = api_manager.auth_api.login_user(admin_data)
+    login_response = api_manager.auth_api.login_user(admin_data)        # (admin_data.dict())
     assert login_response.status_code in [200, 201], "Не удалось авторизоваться"
     access_token = login_response.json()["accessToken"]
     yield access_token  # Возвращаем токен для авторизации в тестах
@@ -77,7 +93,7 @@ def session():
 
 # ФИКСТУРЫ ДЛЯ АУТЕНТЕФИКАЦИИ ПОЛЬЗОВАТЕЛЯ
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def test_user() -> TestUser: # добавили формат возвращаеммого значения TestUser
     """
     Генерация случайного пользователя для тестов.
@@ -93,19 +109,20 @@ def test_user() -> TestUser: # добавили формат возвращае�
         passwordRepeat=random_password, # field_validator автоматически проверит, что password и passwordRepeat совпадают
     ) # поле roles заполнится автоматически и бедт = [Role.USER]
 
+
 @pytest.fixture(scope="function")
-def registered_user(api_manager, test_user):
+def registered_user(api_manager, test_user: TestUser):
     """
     Фикстура для регистрации пользователя через auth_api.
     """
     response = api_manager.auth_api.register_user(test_user)
     response_data = response.json()
-    test_user["id"] = response_data["id"]
+    test_user.id = response_data["id"]
     return test_user
 
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def user_create(api_manager, super_admin_token):
     """Фикстура для создания пользователей с разными ролями."""
     created_users = []
@@ -113,7 +130,7 @@ def user_create(api_manager, super_admin_token):
     def _user_create(role):
         # ✅ Генерируем данные пользователя
         user_data = UserData.generate_user_data(role)
-        email, password = user_data["email"], user_data["password"]
+        email, password = user_data.email, user_data.password
 
         # ✅ Регистрируем пользователя
         response = api_manager.auth_api.register_user(user_data)
@@ -137,7 +154,7 @@ def user_create(api_manager, super_admin_token):
 
         created_users.append(user_id)  # ✅ Добавляем пользователя в список
 
-        return {"id": user_id, "email": email,"password": user_data["password"], "token": access_token}
+        return {"id": user_id, "email": email,"password": user_data.password, "token": access_token}
 
     yield _user_create
 

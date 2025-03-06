@@ -1,4 +1,4 @@
-from constants import REGISTER_ENDPOINT, LOGIN_ENDPOINT
+
 import pytest
 import requests
 from Cinescope.constants import BASE_URL, HEADERS, REGISTER_ENDPOINT,  LOGIN_ENDPOINT

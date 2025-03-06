@@ -58,7 +58,7 @@ class DataGenerator:
         digits = random.choice(string.digits)  # Одна цифра
 
         # Дополняем пароль случайными символами из допустимого набора
-        special_chars = "?@#$%^&*_-+()[]{}><\\/|\"'.,:;"
+        special_chars = "!?@#$%^&*_-+()[{}><>/\\|\"'.:"
         all_chars = string.ascii_letters + string.digits + special_chars
         remaining_length = random.randint(6, 18)  # Остальная длина пароля
         remaining_chars = ''.join(random.choices(all_chars, k=remaining_length))
@@ -66,6 +66,7 @@ class DataGenerator:
         # Перемешиваем пароль для рандомизации
         password = list(letters + digits + remaining_chars)
         random.shuffle(password)
+        final_password = ''.join(password)
 
-        return ''.join(password)
+        return final_password[:18]
 

@@ -1,5 +1,5 @@
 from Cinescope.custom_requester.custom_requester import CustomRequester
-from constants import HEADERS, BASE_URL, REGISTER_ENDPOINT, LOGIN_ENDPOINT
+
 
 class AuthAPI(CustomRequester):
 

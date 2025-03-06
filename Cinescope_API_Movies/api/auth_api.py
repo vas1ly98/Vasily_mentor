@@ -1,7 +1,6 @@
 from Cinescope_API_Movies.custom_requester.custom_requester import CustomRequester
 from Cinescope_API_Movies.constants import  BASE_URL
-from Cinescope_API_Movies.enums.roles import Roles
-from Modul_4.Cinescope.models.base_models import TestUser
+from Cinescope_API_Movies.models.base_models import TestUser
 import json
 
 

@@ -1,5 +1,5 @@
-from Cinescope_API_Movies.all_old_file.movies_api_old import MoviesAPI
-from Cinescope_API_Movies.all_old_file.auth_api_old import AuthAPI
+from Cinescope_API_Movies.api.movies_api import MoviesAPI
+from Cinescope_API_Movies.api.auth_api import AuthAPI
 
 
 

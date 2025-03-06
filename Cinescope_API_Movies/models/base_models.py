@@ -1,19 +1,20 @@
-from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 import datetime
-import re
 from typing import List
 from pydantic import BaseModel, Field, field_validator
 from Cinescope_API_Movies.enums.roles import Roles
+from enum import Enum
 
 class TestUser(BaseModel):
     email: str
     fullName: str
-    password: str
-    passwordRepeat: str = Field(..., min_length=1, max_length=20, description="passwordRepeat должен вполностью совпадать с полем password")
+    password: str = Field(..., min_length=6, max_length=18, description="password может быть от 6 до 18  символов")
+    passwordRepeat: str = Field(..., min_length=6, max_length=18, description="passwordRepeat должен вполностью совпадать с полем password")
     roles: list[Roles] = [Roles.USER]
     verified: Optional[bool] = None
     banned: Optional[bool] = None
+    id: Optional[int] = None
+    createdAt: Optional[str] = None
 
     @field_validator("passwordRepeat")
     def check_password_repeat(cls, value: str, info) -> str:
@@ -27,6 +28,18 @@ class TestUser(BaseModel):
         json_encoders = {
             Roles: lambda v: v.value  # Преобразуем Enum в строку
         }
+class LoginData(BaseModel):
+    email: str = Field(..., description="Email супер-админа")
+    password: str = Field(..., min_length=6, max_length=18, description="Пароль пользователя")
+    passwordRepeat: Optional[str] = None
+    role: Roles = Roles.USER
+    @field_validator('passwordRepeat')
+    def check_password_repeat(cls, value:str, info) -> str:
+        if "password" in info.data and value != info.data["password"]:
+            raise ValueError("Пароли не совпадают")
+        return value
+
+
 
 class RegisterUserResponse(BaseModel):
     id: str
@@ -45,3 +58,4 @@ class RegisterUserResponse(BaseModel):
         except ValueError:
             raise ValueError("Некорректный формат даты и времени. Ожидается формат ISO 8601.")
         return value
+
