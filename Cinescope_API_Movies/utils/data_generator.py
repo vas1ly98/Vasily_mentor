@@ -4,6 +4,9 @@ from faker import Faker
 faker = Faker()
 
 class DataGenerator:
+    @staticmethod
+    def generate_random_int(length: int) -> int:
+        return random.randint(10 ** (length - 1), 10 ** length - 1)
 
     # @staticmethod
     # def generate_funny_movie_title():

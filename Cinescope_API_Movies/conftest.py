@@ -1,7 +1,12 @@
+from datetime import datetime
+
 import pytest
 import requests
 import uuid
 from faker import Faker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 from Cinescope_API_Movies.constants import MOVIES_GENRES_ENDPOINT, MOVIES_ENDPOINT, base_url, BASE_URL
 import pytest
 from Cinescope_API_Movies.utils.data_generator import DataGenerator
@@ -14,6 +19,7 @@ import time
 faker = Faker()
 from Cinescope_API_Movies.utils.user_data import UserData
 from Cinescope_API_Movies.models.base_models import TestUser
+from Cinescope_API_Movies.db_requester.models import UserDBModel
 
 
 #ФИКСТУРЫ ДЛЯ ФИЛЬМОВ
@@ -166,7 +172,45 @@ def user_create(api_manager, super_admin_token):
             print(f"⚠️ Ошибка при удалении пользователя {user_id}: {e}")
 
 
+@pytest.fixture(scope="function")
+def db_session():
+    # Оставим эти данные тут для наглядности. но не стоит хранить креды в гитлбе. они должны быть заданы через env
+    HOST = "92.255.111.76"
+    PORT = 31200
+    DATABASE_NAME = "db_movies"
+    USERNAME = "postgres"
+    PASSWORD = "AmwFrtnR2"
 
+    engine = create_engine(
+        f"postgresql+psycopg2://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE_NAME}")  # Создаем движок (engine) для подключения к базе данных
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # Создаем фабрику сессий
+    """
+    Фикстура, которая создает и возвращает сессию для работы с базой данных.
+    После завершения теста сессия автоматически закрывается.
+    """
+    # Создаем новую сессию
+    session = SessionLocal()
+    test_user = UserDBModel(
+        id="test_id",
+        email=DataGenerator.generate_random_email(),
+        full_name=DataGenerator.generate_random_name(),
+        password=DataGenerator.generate_random_password(),
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+        verified=False,
+        banned=False,
+        roles="{USER}"
+    )
+    session.add(test_user)  # добавляем обьект в базу данных
+    session.commit()  # сохраняем изменения для всех остальных подключений
+
+    yield session  # можете запустить тесты в дебаг режиме и поставить тут брекпойнт
+    # зайдите в базу и убедитесь что нывй обьект был создан
+
+    # код ниже выполнится после всех запущеных тестов
+    session.delete(test_user)  # Удаляем тестовые данные
+    session.commit()  # сохраняем изменения для всех остальных подключений
+    session.close()  # завершем сессию (отключаемся от базы данных)
 
 
 

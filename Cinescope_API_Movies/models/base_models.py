@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, field_validator
 from Cinescope_API_Movies.enums.roles import Roles
 from enum import Enum
 
+
 class TestUser(BaseModel):
     email: str
     fullName: str
@@ -17,9 +18,8 @@ class TestUser(BaseModel):
     createdAt: Optional[str] = None
 
     @field_validator("passwordRepeat")
-    def check_password_repeat(cls, value: str, info) -> str:
-        # Проверяем, совпадение паролей
-        if "password" in info.data and value != info.data["password"]:
+    def check_password_repeat(cls, value, values):
+        if values.get("password") and value != values["password"]:
             raise ValueError("Пароли не совпадают")
         return value
 
@@ -33,9 +33,10 @@ class LoginData(BaseModel):
     password: str = Field(..., min_length=6, max_length=18, description="Пароль пользователя")
     passwordRepeat: Optional[str] = None
     role: Roles = Roles.USER
-    @field_validator('passwordRepeat')
-    def check_password_repeat(cls, value:str, info) -> str:
-        if "password" in info.data and value != info.data["password"]:
+
+    @field_validator("passwordRepeat")
+    def check_password_repeat(cls, value: str, values) -> str:
+        if values.get("password") and value != values["password"]:
             raise ValueError("Пароли не совпадают")
         return value
 
@@ -58,4 +59,6 @@ class RegisterUserResponse(BaseModel):
         except ValueError:
             raise ValueError("Некорректный формат даты и времени. Ожидается формат ISO 8601.")
         return value
+
+
 
