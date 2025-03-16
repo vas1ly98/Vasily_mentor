@@ -1,12 +1,13 @@
 from  Cinescope_API_Movies.enums.roles import Roles
-
+from Cinescope_API_Movies.api.api_manager import ApiManager
 class User:
-    def __init__(self, email: str, password: str, roles: list, api_manager):
+    def __init__(self, email: str, password: str, roles: list, api: ApiManager):
         self.email = email
         self.password = password
         self.roles = roles
-        self.api_manager = api_manager
+        self.api = api  # Сюда будем передавать экземпляр API Manager для запросов
 
     @property
     def creds(self):
+        """Возвращает кортеж (email, password)"""
         return self.email, self.password

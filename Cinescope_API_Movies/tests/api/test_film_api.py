@@ -22,6 +22,16 @@ class TestFilmApi:
        assert movie_response.status_code ==200, 'Не найден id'
        assert movie_response.json()["name"] == movie_name, 'Имя фильма не совпадает'
 
+    #дз
+    def test_create_movies_negative(self, api_manager, create_movie):
+       movie_id = create_movie["id"]
+       movie_name = create_movie["name"]
+       assert movie_id is not None, "ID не может быть пустым"
+
+       movie_response = api_manager.movies_api.get_movie(movie_id)
+       assert movie_response.status_code ==200, 'Не найден id'
+       assert movie_response.json()["name"] == movie_name, 'Имя фильма не совпадает'
+
 
     def test_delete_movies(self, api_manager, super_admin_token, create_movie):
         movies_id = create_movie['id']

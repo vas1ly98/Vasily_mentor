@@ -13,6 +13,8 @@ class CustomRequester:
         self.base_url = base_url
         self.headers = headers or {}
         self.session = session
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
 
     def send_request(self, method, endpoint, data=None, params=None, headers=None, expected_status=SC_OK):
 
@@ -52,6 +54,15 @@ class CustomRequester:
         print("\n======================================== RESPONSE =======================================")
         print(f"Status Code: {response.status_code}")
         print(f"Response Data: {response.text}")
+
+    def _update_session_headers(self, **kwargs):
+        """
+        Обновление заголовков сессии.
+        :param session: Объект requests.Session, предоставленный API-классом.
+        :param kwargs: Дополнительные заголовки.
+        """
+        self.headers.update(kwargs)  # Обновляем базовые заголовки
+        self.session.headers.update(self.headers)  # Обновляем заголовки в текущей сессии
 
 
 

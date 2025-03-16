@@ -11,6 +11,7 @@ class AuthAPI(CustomRequester):
         super().__init__(session=session, base_url=BASE_URL)
 
 
+
     def register_user(self, user_data: TestUser):
         """Регистрирует нового пользователя"""
         return self.send_request("POST", "register", data=json.loads(user_data.model_dump_json(exclude_unset=True)))
@@ -35,4 +36,18 @@ class AuthAPI(CustomRequester):
         headers = {"Authorization": f"Bearer {admin_token}"}
         response = self.send_request("GET", f"user/{user_id}", headers=headers, expected_status=[200])
         return response.json()
+
+    def authenticate(self, user_creds):
+        login_data = {
+            "email": user_creds[0],
+            "password": user_creds[1]
+        }
+
+        response = self.login_user(login_data).json()
+        if "accessToken" not in response:
+            raise KeyError("token is missing")
+
+        token = response["accessToken"]
+        self._update_session_headers(**{"authorization": "Bearer " + token})
+
 

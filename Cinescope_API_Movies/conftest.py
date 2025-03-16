@@ -20,7 +20,7 @@ faker = Faker()
 from Cinescope_API_Movies.utils.user_data import UserData
 from Cinescope_API_Movies.models.base_models import TestUser
 from Cinescope_API_Movies.db_requester.models import UserDBModel
-
+from Cinescope_API_Movies.resources.user_creds import SuperAdminCreds, AdminCreds
 
 #ФИКСТУРЫ ДЛЯ ФИЛЬМОВ
 @pytest.fixture(scope="function")
@@ -46,6 +46,8 @@ def create_movie(api_manager, super_admin_token, movie_data):
     yield movie
     api_manager.movies_api.delete_movie(movie["id"], super_admin_token, expected_status=(201, 200, 404))
     time.sleep(2)
+
+
 
 # @pytest.fixture
 # def super_admin(api_manager):
@@ -115,6 +117,17 @@ def test_user() -> TestUser: # добавили формат возвращае�
         passwordRepeat=random_password, # field_validator автоматически проверит, что password и passwordRepeat совпадают
     ) # поле roles заполнится автоматически и бедт = [Role.USER]
 
+# @pytest.fixture
+# def test_user():
+#     random_password = DataGenerator.generate_random_password()
+#
+#     return {
+#         "email": DataGenerator.generate_random_email(),
+#         "fullName": DataGenerator.generate_random_name(),
+#         "password": random_password,
+#         "passwordRepeat": random_password,
+#         "roles": [Roles.USER.value]
+#     }
 
 @pytest.fixture(scope="function")
 def registered_user(api_manager, test_user: TestUser):
@@ -212,9 +225,101 @@ def db_session():
     session.commit()  # сохраняем изменения для всех остальных подключений
     session.close()  # завершем сессию (отключаемся от базы данных)
 
+@pytest.fixture #была добавлена в файл conftest.py
+def delay_between_retries():
+    time.sleep(2)  # Задержка в 2 секунды\ это не обязательно но
+    yield          # нужно понимать что такая возможность имеется
+
+@pytest.fixture
+def user_session():
+    user_pool = []
+
+    def _create_user_session():
+        session = requests.Session()
+        user_session = ApiManager(session)
+        user_pool.append(user_session)
+        return user_session
+
+    yield _create_user_session
+
+    for user in user_pool:
+        user.close_session()
+
+@pytest.fixture
+def super_admin(user_session):
+    new_session = user_session()
+
+    super_admin = User(
+        SuperAdminCreds.USERNAME,
+        SuperAdminCreds.PASSWORD,
+        [Roles.SUPER_ADMIN.value],
+        new_session)
+
+    super_admin.api.auth_api.authenticate(super_admin.creds)
+    return super_admin
+
+@pytest.fixture(scope="function")
+def creation_user_data(test_user):
+    test_user.update({
+        "verified": True,
+        "banned": False
+    })
+    return test_user
+
+@pytest.fixture
+def common_user(user_session, super_admin, creation_user_data):
+    new_session = user_session()
+
+    common_user = User(
+        creation_user_data['email'],
+        creation_user_data['password'],
+        [Roles.USER.value],
+        new_session)
+
+    super_admin.api.user_api.create_user(creation_user_data)
+    common_user.api.auth_api.authenticate(common_user.creds)
+    return common_user
 
 
 
+
+
+
+
+
+
+
+
+
+
+# дз
+@pytest.fixture
+def admin(user_session):
+    new_session = user_session()
+
+    admin = User(
+        AdminCreds.USERNAME,
+        AdminCreds.PASSWORD,
+        [Roles.ADMIN.value],
+        new_session)
+
+    admin.api.auth_api.authenticate(admin.creds)
+    return admin
+
+#дз
+@pytest.fixture
+def common_user_admin(user_session, admin, creation_user_data):
+    new_session = user_session()
+
+    common_user = User(
+        creation_user_data['email'],
+        creation_user_data['password'],
+        [Roles.ADMIN.value],
+        new_session)
+
+    admin.api.user_api.create_user(creation_user_data)
+    common_user.api.auth_api.authenticate(common_user.creds)
+    return common_user
 
 
 

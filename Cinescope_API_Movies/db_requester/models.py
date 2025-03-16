@@ -32,3 +32,13 @@ class MovieDBModel(Base):
     rating = Column(Integer)  # Рейтинг фильма
     published = Column(Boolean)  # Опубликован ли фильм
     created_at = Column(DateTime)  # Дата создания записи
+
+class AccountTransactionTemplate(Base):
+    __tablename__ = 'accounts_transaction_template'
+    user = Column(String, primary_key=True)
+    balance = Column(Integer, nullable=False)
+
+    @classmethod
+    def create(cls, user: str, balance: int):
+        return cls(user=user, balance=balance)
+

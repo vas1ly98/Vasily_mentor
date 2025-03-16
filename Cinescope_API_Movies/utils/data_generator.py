@@ -73,3 +73,6 @@ class DataGenerator:
 
         return final_password[:18]
 
+if __name__ == "__main__":
+    uperr = DataGenerator()
+    print(uperr.generate_random_password())
